@@ -51,6 +51,7 @@ export function SubstitutionRatio({ data }: Props) {
   return (
     <Card
       title={t("chart.substitutionTitle")}
+      products={["Exchange", "Lending"]}
       sql={QUERY_SQL_MAP["Stablecoin Substitution Ratio"]}
       signal={t("chart.substitutionSignal")}
     >

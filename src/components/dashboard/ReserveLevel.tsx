@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   LineChart,
   Line,
@@ -21,6 +22,8 @@ interface Props {
   data: ReserveRow[];
 }
 
+const REGIONS = ["Korea", "US", "International"] as const;
+
 const REGION_COLORS: Record<string, string> = {
   Korea: "#22c55e",
   US: "#3b82f6",
@@ -29,6 +32,14 @@ const REGION_COLORS: Record<string, string> = {
 
 export function ReserveLevel({ data }: Props) {
   const { t } = useI18n();
+  const [visible, setVisible] = useState<Record<string, boolean>>({
+    Korea: true,
+    US: true,
+    International: true,
+  });
+
+  const toggle = (region: string) =>
+    setVisible((prev) => ({ ...prev, [region]: !prev[region] }));
 
   // Pivot: for each day, show cumulative net flow per region
   const dayMap = new Map<
@@ -70,8 +81,55 @@ export function ReserveLevel({ data }: Props) {
       title={t("chart.reserveTitle")}
       sql={QUERY_SQL_MAP["Exchange Reserve Level"]}
       signal={t("chart.reserveSignal")}
+      products={["Exchange", "Custody", "Lending"]}
     >
-      <div className="h-72">
+      {/* Region toggles */}
+      <div className="flex gap-4 mb-3">
+        {REGIONS.map((region) => (
+          <label
+            key={region}
+            className="flex items-center gap-1.5 cursor-pointer select-none text-xs"
+          >
+            <input
+              type="checkbox"
+              checked={visible[region]}
+              onChange={() => toggle(region)}
+              className="sr-only peer"
+            />
+            <span
+              className="w-3 h-3 rounded-sm border flex items-center justify-center transition-colors"
+              style={{
+                borderColor: REGION_COLORS[region],
+                backgroundColor: visible[region]
+                  ? REGION_COLORS[region] + "33"
+                  : "transparent",
+              }}
+            >
+              {visible[region] && (
+                <svg
+                  viewBox="0 0 12 12"
+                  className="w-2 h-2"
+                  fill="none"
+                  stroke={REGION_COLORS[region]}
+                  strokeWidth={2.5}
+                >
+                  <path d="M2 6l3 3 5-6" />
+                </svg>
+              )}
+            </span>
+            <span
+              className="transition-colors"
+              style={{
+                color: visible[region] ? REGION_COLORS[region] : "#475569",
+              }}
+            >
+              {region}
+            </span>
+          </label>
+        ))}
+      </div>
+
+      <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
@@ -91,16 +149,18 @@ export function ReserveLevel({ data }: Props) {
             />
             <Tooltip content={<ChartTooltip />} />
             <Legend wrapperStyle={{ color: "#94a3b8" }} />
-            {Object.entries(REGION_COLORS).map(([region, color]) => (
-              <Line
-                key={region}
-                type="monotone"
-                dataKey={region}
-                stroke={color}
-                strokeWidth={2}
-                dot={false}
-              />
-            ))}
+            {REGIONS.map((region) =>
+              visible[region] ? (
+                <Line
+                  key={region}
+                  type="monotone"
+                  dataKey={region}
+                  stroke={REGION_COLORS[region]}
+                  strokeWidth={2}
+                  dot={false}
+                />
+              ) : null
+            )}
           </LineChart>
         </ResponsiveContainer>
       </div>

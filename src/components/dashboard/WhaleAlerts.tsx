@@ -19,6 +19,7 @@ export function WhaleAlerts({ data }: Props) {
     <Card
       title={t("chart.whaleTitle")}
       sql={QUERY_SQL_MAP["Whale Alerts"]}
+      products={["Exchange", "Custody"]}
       signal={t("chart.whaleSignal")}
     >
       <div className="overflow-x-auto max-h-80 overflow-y-auto">

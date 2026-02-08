@@ -54,6 +54,7 @@ export function CrossChainFlow({ data }: Props) {
       title={t("chart.crossChainTitle")}
       sql={QUERY_SQL_MAP["Cross-Chain Flow Patterns"]}
       signal={t("chart.crossChainSignal")}
+      products={["Exchange", "Staking"]}
     >
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">

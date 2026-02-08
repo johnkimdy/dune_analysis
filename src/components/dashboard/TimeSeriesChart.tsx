@@ -37,6 +37,7 @@ export function TimeSeriesChart({ data }: { data: TimeSeriesPoint[] }) {
       title={t("chart.timeSeriesTitle")}
       sql={QUERY_SQL_MAP["Korea Net Stablecoin Flow"]}
       signal={t("chart.timeSeriesSignal")}
+      products={["Exchange", "Custody"]}
     >
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">

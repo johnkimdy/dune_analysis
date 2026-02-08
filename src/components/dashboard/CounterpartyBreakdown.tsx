@@ -66,6 +66,7 @@ export function CounterpartyBreakdown({ data }: Props) {
       title={t("chart.counterpartyTitle")}
       sql={QUERY_SQL_MAP["Counterparty Exchange Breakdown"]}
       signal={t("chart.counterpartySignal")}
+      products={["Exchange", "Custody"]}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="h-64">

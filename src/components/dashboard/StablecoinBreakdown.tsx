@@ -23,6 +23,7 @@ export function StablecoinBreakdown({ data }: { data: StablecoinVolume[] }) {
       title={t("chart.stablecoinTitle")}
       sql={QUERY_SQL_MAP["Korea Net Stablecoin Flow"]}
       signal={t("chart.stablecoinSignal")}
+      products={["Exchange", "Lending"]}
     >
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">

@@ -55,6 +55,7 @@ export function DefiOutflow({ data }: Props) {
       title={t("chart.defiTitle")}
       sql={QUERY_SQL_MAP["DeFi Outflow Tracking"]}
       signal={t("chart.defiSignal")}
+      products={["Staking", "Lending"]}
     >
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">

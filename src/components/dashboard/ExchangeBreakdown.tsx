@@ -25,6 +25,7 @@ export function ExchangeBreakdown({ data }: { data: ExchangeVolume[] }) {
       title={t("chart.exchangeTitle")}
       sql={QUERY_SQL_MAP["Korea Net Stablecoin Flow"]}
       signal={t("chart.exchangeSignal")}
+      products={["Exchange", "Custody"]}
     >
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
