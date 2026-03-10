@@ -7,7 +7,9 @@ export type Lang = "en" | "kr";
 const translations: Record<Lang, Record<string, string>> = {
   en: {
     // ── Dashboard shell ──
-    "dashboard.title": "Korean Exchange Stablecoin Flows",
+    "dashboard.title": "thestablecoinmustflow.",
+    "dashboard.titlePart1": "thestablecoin",
+    "dashboard.titlePart2": "mustflow.",
     "dashboard.subtitle":
       "USDC, USDT, DAI, BUSD, TUSD, FRAX across Upbit, Bithumb, Coinone, Korbit, GOPAX",
     "dashboard.mockNotice": "Mock data — Dune API paused to conserve credits",
@@ -126,6 +128,8 @@ const translations: Record<Lang, Record<string, string>> = {
   kr: {
     // ── Dashboard shell ──
     "dashboard.title": "한국 거래소 스테이블코인 자금 흐름",
+    "dashboard.titlePart1": "한국 거래소 스테이블코인 ",
+    "dashboard.titlePart2": "자금 흐름",
     "dashboard.subtitle":
       "업비트, 빗썸, 코인원, 코빗, 고팍스의 USDC, USDT, DAI, BUSD, TUSD, FRAX 추적",
     "dashboard.mockNotice": "모의 데이터 — Dune API 크레딧 절약을 위해 일시 중단",

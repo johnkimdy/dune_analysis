@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Phase 1: Dune snapshot cache ──────────────────────────────────────────────
+
+model DashboardSnapshot {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  snapshotDate    DateTime @db.Date                                        @map("snapshot_date")
+  data            Json
+  source          String   @default("dune")
+  rowCounts       Json?                                                     @map("row_counts")
+  fetchDurationMs Int?                                                      @map("fetch_duration_ms")
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)              @map("created_at")
+
+  @@unique([snapshotDate, source])
+  @@index([snapshotDate(sort: Desc)])
+  @@map("dashboard_snapshots")
+}
+
+// ── Phase 3: Raw RPC-ingested stablecoin transfers ───────────────────────────
+
+model StablecoinTransfer {
+  id           BigInt   @id @default(autoincrement())
+  blockchain   String
+  txHash       String                              @map("tx_hash")
+  blockNumber  BigInt                              @map("block_number")
+  blockTime    DateTime @db.Timestamptz(6)         @map("block_time")
+  symbol       String
+  fromAddress  String                              @map("from_address")
+  toAddress    String                              @map("to_address")
+  amountRaw    Decimal  @db.Decimal                @map("amount_raw")
+  amountUsd    Decimal? @db.Decimal                @map("amount_usd")
+  exchangeName String?                             @map("exchange_name")
+  direction    String?
+  ingestedAt   DateTime @default(now()) @db.Timestamptz(6) @map("ingested_at")
+
+  @@unique([blockchain, txHash, fromAddress, toAddress])
+  @@index([blockTime(sort: Desc)])
+  @@index([blockchain, blockTime(sort: Desc)])
+  @@index([exchangeName, blockTime(sort: Desc)])
+  @@index([symbol, blockTime(sort: Desc)])
+  @@index([amountUsd(sort: Desc)])
+  @@map("stablecoin_transfers")
+}
+
+// ── Phase 3: Pre-computed aggregates ─────────────────────────────────────────
+
+model FlowAggregateHourly {
+  hour         DateTime @db.Timestamptz(6)
+  blockchain   String
+  symbol       String
+  exchangeName String                              @map("exchange_name")
+  direction    String
+  totalUsd     Decimal  @default(0) @db.Decimal    @map("total_usd")
+  numTransfers Int      @default(0)                @map("num_transfers")
+  computedAt   DateTime @default(now()) @db.Timestamptz(6) @map("computed_at")
+
+  @@id([hour, blockchain, symbol, exchangeName, direction])
+  @@index([hour(sort: Desc)])
+  @@map("flow_aggregates_hourly")
+}
+
+model FlowAggregateDaily {
+  day          DateTime @db.Date
+  region       String
+  symbol       String
+  totalInflow  Decimal  @default(0) @db.Decimal    @map("total_inflow")
+  totalOutflow Decimal  @default(0) @db.Decimal    @map("total_outflow")
+  netFlow      Decimal  @default(0) @db.Decimal    @map("net_flow")
+  computedAt   DateTime @default(now()) @db.Timestamptz(6) @map("computed_at")
+
+  @@id([day, region, symbol])
+  @@index([day(sort: Desc)])
+  @@map("flow_aggregates_daily")
+}

@@ -24,7 +24,7 @@ export function QueryTooltip({ sql }: QueryTooltipProps) {
     <div className="relative inline-block" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded"
+        className="text-[var(--muted)] hover:text-[var(--accent)] transition-colors p-1 rounded"
         title="View SQL query"
       >
         <svg
@@ -42,14 +42,14 @@ export function QueryTooltip({ sql }: QueryTooltipProps) {
         </svg>
       </button>
       {open && (
-        <div className="absolute right-0 top-8 z-50 w-[500px] max-h-[400px] overflow-auto bg-[#0a0a0f] border border-[#2a2a3e] rounded-lg shadow-2xl p-4">
+        <div className="absolute right-0 top-8 z-50 w-[500px] max-h-[400px] overflow-auto bg-[var(--background)] border border-[var(--border)] rounded-lg shadow-2xl p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-medium text-[var(--secondary)] uppercase tracking-wider">
               SQL Query
             </span>
             <button
               onClick={() => setOpen(false)}
-              className="text-slate-500 hover:text-slate-300 text-xs"
+              className="text-[var(--muted)] hover:text-[var(--accent)] text-xs transition-colors"
             >
               Close
             </button>

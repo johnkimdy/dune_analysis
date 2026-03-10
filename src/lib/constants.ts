@@ -15,8 +15,10 @@ export const STABLECOINS = [
   "FRAX",
 ] as const;
 
-export const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
-export const CACHE_TTL_MS = 5 * 60 * 1000;
+// Data refreshes once daily via Vercel cron + Next.js ISR.
+// REFRESH_INTERVAL_MS is kept for reference but client-side polling is disabled.
+export const REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
+export const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 export const EXCHANGE_COLORS: Record<string, string> = {
   Upbit: "#093687",

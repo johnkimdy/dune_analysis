@@ -11,6 +11,7 @@ import {
   Legend,
 } from "recharts";
 import { Card } from "@/components/ui/Card";
+import { DebouncedChartContainer } from "@/components/ui/DebouncedChartContainer";
 import { ChartTooltip } from "@/components/ui/ChartTooltip";
 import { formatUSD } from "@/lib/utils";
 import { QUERY_SQL_MAP } from "@/lib/queries";
@@ -27,7 +28,7 @@ export function ExchangeBreakdown({ data }: { data: ExchangeVolume[] }) {
       signal={t("chart.exchangeSignal")}
       products={["Exchange", "Custody"]}
     >
-      <div className="h-72">
+      <DebouncedChartContainer className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
@@ -61,7 +62,7 @@ export function ExchangeBreakdown({ data }: { data: ExchangeVolume[] }) {
             />
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </DebouncedChartContainer>
     </Card>
   );
 }

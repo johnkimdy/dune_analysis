@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
+import { NavBar } from "@/components/layout/NavBar";
+import { I18nProvider } from "@/lib/i18n";
+import { DashboardDataProvider } from "@/contexts/DashboardDataContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,8 +15,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "Korean Exchange Stablecoin Flows | Dune Dashboard",
+  title: "thestablecoinmustflow. | Dune Dashboard",
   description:
     "Real-time tracking of USDC, USDT, DAI, BUSD, TUSD, FRAX flows in and out of Korean crypto exchanges.",
 };
@@ -24,11 +32,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        {children}
+        <I18nProvider>
+          <DashboardDataProvider>
+            <NavBar />
+            {children}
+          </DashboardDataProvider>
+        </I18nProvider>
       </body>
     </html>
   );

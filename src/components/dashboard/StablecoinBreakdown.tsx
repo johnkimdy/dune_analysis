@@ -9,6 +9,7 @@ import {
   Legend,
 } from "recharts";
 import { Card } from "@/components/ui/Card";
+import { DebouncedChartContainer } from "@/components/ui/DebouncedChartContainer";
 import { STABLECOIN_COLORS } from "@/lib/constants";
 import { formatUSD } from "@/lib/utils";
 import { QUERY_SQL_MAP } from "@/lib/queries";
@@ -25,7 +26,7 @@ export function StablecoinBreakdown({ data }: { data: StablecoinVolume[] }) {
       signal={t("chart.stablecoinSignal")}
       products={["Exchange", "Lending"]}
     >
-      <div className="h-72">
+      <DebouncedChartContainer className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -51,16 +52,16 @@ export function StablecoinBreakdown({ data }: { data: StablecoinVolume[] }) {
             <Tooltip
               formatter={(value) => formatUSD(Number(value ?? 0))}
               contentStyle={{
-                backgroundColor: "#12121a",
-                border: "1px solid #2a2a3e",
+                backgroundColor: "var(--card)",
+                border: "1px solid var(--border)",
                 borderRadius: "8px",
               }}
-              itemStyle={{ color: "#e2e8f0" }}
+              itemStyle={{ color: "var(--foreground)" }}
             />
             <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
           </PieChart>
         </ResponsiveContainer>
-      </div>
+      </DebouncedChartContainer>
     </Card>
   );
 }

@@ -34,9 +34,21 @@ yarn-error.log*
 .env*
 .env.local*
 
+# GCP service account key — never commit
+service_account.json
+*-service-account*.json
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# terraform — never commit secrets or state
+infra/terraform/terraform.tfvars
+infra/terraform/backend.config
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl

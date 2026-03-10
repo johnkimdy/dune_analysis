@@ -12,6 +12,7 @@ import {
   Legend,
 } from "recharts";
 import { Card } from "@/components/ui/Card";
+import { DebouncedChartContainer } from "@/components/ui/DebouncedChartContainer";
 import { ChartTooltip } from "@/components/ui/ChartTooltip";
 import { formatUSD, parseDuneTimestamp, formatDayLabel } from "@/lib/utils";
 import { QUERY_SQL_MAP } from "@/lib/queries";
@@ -129,7 +130,7 @@ export function ReserveLevel({ data }: Props) {
         ))}
       </div>
 
-      <div className="h-64">
+      <DebouncedChartContainer className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
@@ -163,7 +164,7 @@ export function ReserveLevel({ data }: Props) {
             )}
           </LineChart>
         </ResponsiveContainer>
-      </div>
+      </DebouncedChartContainer>
     </Card>
   );
 }

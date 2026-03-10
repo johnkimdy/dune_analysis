@@ -297,8 +297,105 @@ GROUP BY 1, 2
 ORDER BY day ASC, total_volume DESC
 `;
 
+// ──────────────────────────────────────────────────
+// Phase 1: Supply + Volume for M (Momentum) and V (Velocity)
+// Used by scripts/data_pipeline.py — paste into Dune, save, add Query ID to .env
+// Expected output: date, symbol, supply, daily_volume, market_cap
+// ──────────────────────────────────────────────────
+export const PHASE1_SUPPLY_VELOCITY_QUERY = `
+WITH supply_by_day AS (
+  SELECT
+    b.day AS date,
+    b.token_symbol AS symbol,
+    SUM(b.balance) AS supply,
+    SUM(b.balance_usd) AS market_cap
+  FROM stablecoins_multichain.balances AS b
+  WHERE b.token_symbol IN ('USDT', 'USDC', 'FDUSD')
+    AND b.day >= CURRENT_DATE - INTERVAL '90' DAY
+    AND b.balance > 0
+  GROUP BY 1, 2
+),
+volume_evm AS (
+  SELECT
+    t.block_date AS date,
+    t.token_symbol AS symbol,
+    SUM(t.amount_usd) AS daily_volume
+  FROM stablecoins_evm.transfers AS t
+  WHERE t.token_symbol IN ('USDT', 'USDC', 'FDUSD')
+    AND t.block_date >= CURRENT_DATE - INTERVAL '90' DAY
+    AND t.amount_usd > 0
+  GROUP BY 1, 2
+),
+volume_tron AS (
+  SELECT
+    t.block_date AS date,
+    t.token_symbol AS symbol,
+    SUM(t.amount_usd) AS daily_volume
+  FROM stablecoins_tron.transfers AS t
+  WHERE t.token_symbol IN ('USDT', 'USDC', 'FDUSD')
+    AND t.block_date >= CURRENT_DATE - INTERVAL '90' DAY
+    AND t.amount_usd > 0
+  GROUP BY 1, 2
+),
+volume_by_day AS (
+  SELECT date, symbol, SUM(daily_volume) AS daily_volume
+  FROM (
+    SELECT date, symbol, daily_volume FROM volume_evm
+    UNION ALL
+    SELECT date, symbol, daily_volume FROM volume_tron
+  ) combined
+  GROUP BY 1, 2
+)
+SELECT
+  s.date,
+  s.symbol,
+  s.supply,
+  COALESCE(v.daily_volume, 0) AS daily_volume,
+  s.market_cap
+FROM supply_by_day s
+LEFT JOIN volume_by_day v ON s.date = v.date AND s.symbol = v.symbol
+ORDER BY s.date ASC, s.symbol
+`;
+
+// ──────────────────────────────────────────────────
+// Phase 1: Korean Exchange Volume (for KFI — Kimchi Flight Index)
+// KFI = correlation between Korean stablecoin velocity and KRW/USD.
+// Expected output: date, symbol, korean_daily_volume
+// Add Query ID to .env as DUNE_QUERY_ID_KOREAN_VOLUME
+// ──────────────────────────────────────────────────
+export const PHASE1_KOREAN_VOLUME_QUERY = `
+WITH korean_exchanges AS (
+  SELECT blockchain, address
+  FROM cex.addresses
+  WHERE cex_name IN (${exchangeList})
+),
+korean_flows AS (
+  SELECT
+    CAST(date_trunc('day', t.block_time) AS DATE) AS date,
+    t.symbol,
+    t.amount_usd
+  FROM tokens.transfers t
+  INNER JOIN korean_exchanges k
+    ON (t."to" = k.address OR t."from" = k.address)
+    AND t.blockchain = k.blockchain
+  WHERE t.symbol IN ('USDT', 'USDC', 'FDUSD')
+    AND t.block_time >= CURRENT_DATE - INTERVAL '30' DAY
+    AND t.blockchain IN ('ethereum', 'polygon', 'arbitrum', 'base', 'bnb', 'avalanche_c')
+    AND t.amount_usd > 0
+)
+SELECT
+  date,
+  symbol,
+  SUM(amount_usd) AS korean_daily_volume
+FROM korean_flows
+GROUP BY 1, 2
+ORDER BY 1 ASC, 2
+`;
+
 // Map of query name to SQL string for the tooltip display
 export const QUERY_SQL_MAP: Record<string, string> = {
+  "Phase 1: Supply + Velocity (M, V)": PHASE1_SUPPLY_VELOCITY_QUERY,
+  "Phase 1: Korean Volume (KFI)": PHASE1_KOREAN_VOLUME_QUERY,
   "Korea Net Stablecoin Flow": FLOWS_QUERY,
   "Exchange Reserve Level": RESERVE_LEVEL_QUERY,
   "Whale Alerts": WHALE_ALERTS_QUERY,

@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Card } from "@/components/ui/Card";
-import { formatUSD, formatNumber } from "@/lib/utils";
+import { formatUSD, formatNumber, cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import type { SummaryData } from "@/lib/types";
 
 export function SummaryCards({ data }: { data: SummaryData }) {
   const { t } = useI18n();
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   const cards = [
     {
@@ -38,13 +40,25 @@ export function SummaryCards({ data }: { data: SummaryData }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card) => (
-        <Card key={card.title}>
-          <p className="text-sm text-slate-400 mb-1">{card.title}</p>
-          <p className={`text-2xl font-bold font-mono ${card.color}`}>
-            {card.value}
-          </p>
-          <p className="text-xs text-slate-500 mt-1">{card.sub}</p>
-        </Card>
+        <div
+          key={card.title}
+          onMouseEnter={() => setHoveredCard(card.title)}
+          onMouseLeave={() => setHoveredCard(null)}
+          className={cn(
+            "transition-all duration-300",
+            hoveredCard &&
+              hoveredCard !== card.title &&
+              "blur-sm opacity-60 pointer-events-none"
+          )}
+        >
+          <Card>
+            <p className="text-sm text-[var(--secondary)] mb-1">{card.title}</p>
+            <p className={`text-2xl font-bold font-mono ${card.color}`}>
+              {card.value}
+            </p>
+            <p className="text-xs text-[var(--muted)] mt-1">{card.sub}</p>
+          </Card>
+        </div>
       ))}
     </div>
   );

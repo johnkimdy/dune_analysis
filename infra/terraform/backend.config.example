@@ -1,0 +1,5 @@
+# Copy to backend.config and set your bucket. Never commit backend.config.
+# Create the bucket first: gsutil mb -l us-central1 gs://YOUR_PROJECT_ID-tfstate
+# Enable versioning: gsutil versioning set on gs://YOUR_PROJECT_ID-tfstate
+
+bucket = "YOUR_PROJECT_ID-tfstate"

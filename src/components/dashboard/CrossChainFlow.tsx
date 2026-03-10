@@ -12,6 +12,7 @@ import {
   Cell,
 } from "recharts";
 import { Card } from "@/components/ui/Card";
+import { DebouncedChartContainer } from "@/components/ui/DebouncedChartContainer";
 import { ChartTooltip } from "@/components/ui/ChartTooltip";
 import { formatUSD } from "@/lib/utils";
 import { BLOCKCHAIN_COLORS } from "@/lib/constants";
@@ -56,7 +57,7 @@ export function CrossChainFlow({ data }: Props) {
       signal={t("chart.crossChainSignal")}
       products={["Exchange", "Staking"]}
     >
-      <div className="h-64">
+      <DebouncedChartContainer className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
@@ -99,7 +100,7 @@ export function CrossChainFlow({ data }: Props) {
             />
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </DebouncedChartContainer>
     </Card>
   );
 }

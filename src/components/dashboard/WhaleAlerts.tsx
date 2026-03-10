@@ -24,8 +24,8 @@ export function WhaleAlerts({ data }: Props) {
     >
       <div className="overflow-x-auto max-h-80 overflow-y-auto">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-[#12121a]">
-            <tr className="border-b border-[#2a2a3e] text-left text-slate-400">
+          <thead className="sticky top-0 bg-[var(--card)]">
+            <tr className="border-b border-[var(--border)] text-left text-[var(--secondary)]">
               <th className="pb-3 pr-4">{t("whale.time")}</th>
               <th className="pb-3 pr-4">{t("whale.exchange")}</th>
               <th className="pb-3 pr-4">{t("whale.dir")}</th>
@@ -34,11 +34,11 @@ export function WhaleAlerts({ data }: Props) {
               <th className="pb-3">{t("whale.tx")}</th>
             </tr>
           </thead>
-          <tbody className="text-slate-300">
+          <tbody className="text-[var(--secondary)]">
             {data.map((row, i) => (
               <tr
                 key={`${row.tx_hash}-${i}`}
-                className="border-b border-[#2a2a3e]/50 hover:bg-[#1a1a2e] transition-colors"
+                className="border-b border-[var(--border)]/50 hover:bg-[var(--card)] transition-colors duration-200"
               >
                 <td className="py-2 pr-4 font-mono text-xs">
                   {format(
@@ -71,7 +71,7 @@ export function WhaleAlerts({ data }: Props) {
                     href={getExplorerUrl(row.blockchain, row.tx_hash)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 font-mono text-xs"
+                    className="text-[var(--accent)] hover:text-[var(--accent)]/80 font-mono text-xs transition-colors"
                   >
                     {row.tx_hash.slice(0, 8)}...
                   </a>
@@ -81,7 +81,7 @@ export function WhaleAlerts({ data }: Props) {
           </tbody>
         </table>
         {data.length === 0 && (
-          <p className="text-center text-slate-500 py-8">
+          <p className="text-center text-[var(--muted)] py-8">
             {t("whale.noData")}
           </p>
         )}

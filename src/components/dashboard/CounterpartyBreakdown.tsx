@@ -12,6 +12,7 @@ import {
   Cell,
 } from "recharts";
 import { Card } from "@/components/ui/Card";
+import { DebouncedChartContainer } from "@/components/ui/DebouncedChartContainer";
 import { ChartTooltip } from "@/components/ui/ChartTooltip";
 import { formatUSD } from "@/lib/utils";
 import { QUERY_SQL_MAP } from "@/lib/queries";
@@ -69,9 +70,10 @@ export function CounterpartyBreakdown({ data }: Props) {
       products={["Exchange", "Custody"]}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="h-64">
-          <p className="text-xs text-slate-500 mb-2">{t("chart.byRegion")}</p>
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-64 flex flex-col">
+          <p className="text-xs text-[var(--muted)] mb-2 flex-shrink-0">{t("chart.byRegion")}</p>
+          <DebouncedChartContainer className="flex-1 min-h-0">
+            <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
               <XAxis
@@ -101,16 +103,17 @@ export function CounterpartyBreakdown({ data }: Props) {
               />
             </BarChart>
           </ResponsiveContainer>
+          </DebouncedChartContainer>
         </div>
         <div>
-          <p className="text-xs text-slate-500 mb-2">
+          <p className="text-xs text-[var(--muted)] mb-2">
             {t("chart.topCounterparties")}
           </p>
           <div className="space-y-1 max-h-56 overflow-y-auto">
             {topExchanges.map((row, i) => (
               <div
                 key={`${row.counterparty}-${row.direction}-${i}`}
-                className="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-[#1a1a2e]"
+                className="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-[var(--card)] transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <span
@@ -120,21 +123,21 @@ export function CounterpartyBreakdown({ data }: Props) {
                         : "bg-red-400"
                     }`}
                   />
-                  <span className="text-slate-300">{row.counterparty}</span>
+                  <span className="text-[var(--secondary)]">{row.counterparty}</span>
                   <span
-                    className="text-slate-600"
+                    className="text-[var(--muted)]"
                     style={{ color: REGION_COLORS[row.region] }}
                   >
                     {row.region}
                   </span>
                 </div>
-                <span className="font-mono text-slate-300">
+                <span className="font-mono text-[var(--secondary)]">
                   {formatUSD(row.total_usd)}
                 </span>
               </div>
             ))}
             {topExchanges.length === 0 && (
-              <p className="text-slate-500 text-center py-4">
+              <p className="text-[var(--muted)] text-center py-4">
                 {t("chart.noData")}
               </p>
             )}

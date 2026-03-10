@@ -14,6 +14,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { Card } from "@/components/ui/Card";
+import { DebouncedChartContainer } from "@/components/ui/DebouncedChartContainer";
 import { ChartTooltip } from "@/components/ui/ChartTooltip";
 import { formatUSD } from "@/lib/utils";
 import { QUERY_SQL_MAP } from "@/lib/queries";
@@ -39,7 +40,7 @@ export function TimeSeriesChart({ data }: { data: TimeSeriesPoint[] }) {
       signal={t("chart.timeSeriesSignal")}
       products={["Exchange", "Custody"]}
     >
-      <div className="h-80">
+      <DebouncedChartContainer className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart
             data={chartData}
@@ -119,7 +120,7 @@ export function TimeSeriesChart({ data }: { data: TimeSeriesPoint[] }) {
             />
           </ComposedChart>
         </ResponsiveContainer>
-      </div>
+      </DebouncedChartContainer>
     </Card>
   );
 }

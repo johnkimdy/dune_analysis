@@ -1,4 +1,9 @@
+import { clsx, type ClassValue } from "clsx";
 import { format } from "date-fns";
+
+export function cn(...inputs: ClassValue[]): string {
+  return clsx(inputs);
+}
 import type {
   FlowRow,
   DashboardData,

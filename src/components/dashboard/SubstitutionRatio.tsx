@@ -11,6 +11,7 @@ import {
   Legend,
 } from "recharts";
 import { Card } from "@/components/ui/Card";
+import { DebouncedChartContainer } from "@/components/ui/DebouncedChartContainer";
 import { ChartTooltip } from "@/components/ui/ChartTooltip";
 import { parseDuneTimestamp, formatDayLabel } from "@/lib/utils";
 import { QUERY_SQL_MAP } from "@/lib/queries";
@@ -55,7 +56,7 @@ export function SubstitutionRatio({ data }: Props) {
       sql={QUERY_SQL_MAP["Stablecoin Substitution Ratio"]}
       signal={t("chart.substitutionSignal")}
     >
-      <div className="h-72">
+      <DebouncedChartContainer className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={chartData}
@@ -95,7 +96,7 @@ export function SubstitutionRatio({ data }: Props) {
             />
           </AreaChart>
         </ResponsiveContainer>
-      </div>
+      </DebouncedChartContainer>
     </Card>
   );
 }

@@ -1,0 +1,12 @@
+# Copy this to terraform.tfvars and fill in values.
+# NEVER commit terraform.tfvars to git — it's in .gitignore.
+
+project_id = "your-gcp-project-id"
+region     = "us-central1"
+
+prod_db_password    = "CHANGE_ME_STRONG_RANDOM_STRING"
+staging_db_password = "CHANGE_ME_STRONG_RANDOM_STRING"
+
+# Optional overrides (defaults are fine to start)
+# prod_tier    = "db-g1-small"    # upgrade when load increases (~$25/mo)
+# staging_tier = "db-f1-micro"    # stay small
