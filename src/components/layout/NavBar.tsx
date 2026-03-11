@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
-import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { cn } from "@/lib/utils";
+import { useLandingScroll } from "@/contexts/LandingScrollContext";
 
 const SCROLL_SHRINK_THRESHOLD = 32;
-const LANDING_SCROLL_RANGE = 520;
+const LANDING_SCROLL_RANGE_FALLBACK = 520;
 const LANDING_FULL_TEXT = "The Stablecoin Must Flow.";
 const LANDING_STACKED_BLACK_LEN = 13; // "thestablecoin"
+const ACCENT = "#f26b3a";
 
 const TABS = [
   { href: "/", label: "Home" },
@@ -19,8 +20,8 @@ const TABS = [
 ] as const;
 
 /** On landing: navbar title builds letter-by-letter from scroll (lowercase, no spaces) */
-function LandingNavTitle({ scrollY }: { scrollY: number }) {
-  const progress = Math.min(scrollY / LANDING_SCROLL_RANGE, 1);
+function LandingNavTitle({ scrollY, scrollRange }: { scrollY: number; scrollRange: number }) {
+  const progress = Math.min(scrollY / scrollRange, 1);
   const popPhaseEnd = 0.88;
   const popProgress = Math.min(progress / popPhaseEnd, 1);
   const popCount = Math.floor(popProgress * (LANDING_FULL_TEXT.length + 1));
@@ -35,7 +36,7 @@ function LandingNavTitle({ scrollY }: { scrollY: number }) {
   return (
     <>
       <span className="text-[var(--primary)]">{black}</span>
-      <span className="text-[var(--accent)]">{orange}</span>
+      <span style={{ color: ACCENT }}>{orange}</span>
     </>
   );
 }
@@ -43,6 +44,7 @@ function LandingNavTitle({ scrollY }: { scrollY: number }) {
 export function NavBar() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { scrollRange } = useLandingScroll() ?? {};
   const [scrolled, setScrolled] = useState(false);
   const [scrollY, setScrollY] = useState(0);
 
@@ -89,7 +91,7 @@ export function NavBar() {
                   "text-lg md:text-xl"
                 )}
               >
-                <LandingNavTitle scrollY={scrollY} />
+                <LandingNavTitle scrollY={scrollY} scrollRange={scrollRange ?? LANDING_SCROLL_RANGE_FALLBACK} />
               </Link>
             ) : (
             <Link
@@ -125,16 +127,6 @@ export function NavBar() {
                 );
               })}
             </div>
-          </div>
-
-          {/* Right: language - fades when scrolled */}
-          <div
-            className={cn(
-              "flex items-center flex-shrink-0 transition-all duration-200",
-              scrolled && "opacity-0 pointer-events-none translate-x-2"
-            )}
-          >
-            <LanguageToggle variant="light" />
           </div>
         </div>
       </div>

@@ -1,51 +1,61 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useLandingScroll } from "@/contexts/LandingScrollContext";
 
-const SCROLL_RANGE = 520;
+const FALLBACK_SCROLL_RANGE = 520;
 const COLORS = { primary: "#0f0f12", accent: "#f26b3a" };
 
-// Pop order: from start of "The Stablecoin Must Flow." — letters leave slogan, stack in navbar (NavBar renders that)
+// Pop order: from start of "The Stablecoin Must Flow." — letters leave slogan, stack in navbar
 const FULL_TEXT = "The Stablecoin Must Flow.";
-const LINE1_LEN = 14; // "The Stablecoin"
+const ORANGE_START = 15; // "Must Flow." (M,U,S,T, ,F,L,O,W,.) = orange, rest = black
 
 interface AnimatedLandingTitleProps {
   heroRef: React.RefObject<HTMLDivElement | null>;
+  paragraphRef: React.RefObject<HTMLParagraphElement | null>;
 }
 
-/** Hero slogan only: stays fixed, shrinks, loses letters as they pop to navbar. NavBar renders the stacked title. */
-export function AnimatedLandingTitle({ heroRef }: AnimatedLandingTitleProps) {
+/** Hero slogan: fixated above paragraph, scrolls with content, shrinks and pops letters into navbar. */
+export function AnimatedLandingTitle({ heroRef, paragraphRef }: AnimatedLandingTitleProps) {
   const [scrollY, setScrollY] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const [heroPos, setHeroPos] = useState<{ top: number; left: number } | null>(null);
+  const rangeSetRef = useRef(false);
+  const { setScrollRange } = useLandingScroll() ?? { setScrollRange: () => {} };
 
   useEffect(() => {
     setMounted(true);
-    const measureHero = () => {
-      if (heroRef?.current && window.scrollY === 0) {
-        const r = heroRef.current.getBoundingClientRect();
-        setHeroPos({ top: r.top, left: r.left });
+    const measure = () => {
+      if (heroRef?.current && paragraphRef?.current && !rangeSetRef.current && window.scrollY < 50) {
+        const paraR = paragraphRef.current.getBoundingClientRect();
+        const nav = document.querySelector("nav");
+        const navbarBottom = nav ? nav.getBoundingClientRect().bottom : 64;
+        // Scroll range = scroll distance at which paragraph meets navbar
+        const range = Math.max(1, paraR.top - navbarBottom);
+        setScrollRange(range);
+        rangeSetRef.current = true;
       }
     };
-    const onScroll = () => setScrollY(window.scrollY);
-    const onResize = () => {
-      if (window.scrollY === 0) measureHero();
+    const onScroll = () => {
+      setScrollY(window.scrollY);
+      measure();
     };
     onScroll();
-    onResize();
-    const t = setTimeout(measureHero, 100);
+    const t = setTimeout(measure, 100);
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", measure);
     return () => {
       clearTimeout(t);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener("resize", measure);
     };
-  }, [heroRef]);
+  }, [heroRef, paragraphRef, setScrollRange]);
 
-  if (!mounted || !heroPos) return null;
+  const { scrollRange } = useLandingScroll() ?? {};
+  const effectiveScrollRange = scrollRange ?? FALLBACK_SCROLL_RANGE;
 
-  const progress = Math.min(scrollY / SCROLL_RANGE, 1);
+  if (!mounted) return null;
+
+  const progress = Math.min(scrollY / effectiveScrollRange, 1);
   const popPhaseEnd = 0.88;
   const popProgress = Math.min(progress / popPhaseEnd, 1);
   const popCount = Math.floor(popProgress * (FULL_TEXT.length + 1));
@@ -60,23 +70,29 @@ export function AnimatedLandingTitle({ heroRef }: AnimatedLandingTitleProps) {
           : 60
       : 72;
   const sizeEnd = 12;
-  const sloganFontSize = Math.round(sizeStart + (sizeEnd - sizeStart) * progress);
+  const lineHeight = 0.95;
 
   if (remaining.length === 0) return null;
 
+  // Shrink by scroll progress; title sits at bottom of spacer (above paragraph)
+  const sloganFontSize = Math.round(sizeStart + (sizeEnd - sizeStart) * progress);
+
+  // Black = "The Stablecoin ", Orange = "Must Flow." (M,U,S,T, ,F,L,O,W,. only)
+  const orangeStartInRemaining = Math.max(0, ORANGE_START - popCount);
+  const part1 = remaining.slice(0, orangeStartInRemaining); // black
+  const part2 = remaining.slice(orangeStartInRemaining);    // orange
+
   return (
     <div
-      className="fixed z-40 font-bold tracking-tight pointer-events-none"
+      className="absolute bottom-0 left-0 right-0 z-40 font-bold tracking-tight pointer-events-none"
       style={{
-        top: `${heroPos.top}px`,
-        left: `${heroPos.left}px`,
         fontSize: `${sloganFontSize}px`,
-        lineHeight: 0.95,
+        lineHeight,
       }}
     >
-      <span style={{ color: COLORS.primary }}>{remaining.slice(0, LINE1_LEN)}</span>
-      <br />
-      <span style={{ color: COLORS.accent }}>{remaining.slice(LINE1_LEN)}</span>
+      {part1 ? <span style={{ color: COLORS.primary }}>{part1}</span> : null}
+      {part1 && part2 ? <br /> : null}
+      {part2 ? <span style={{ color: COLORS.accent }}>{part2}</span> : null}
     </div>
   );
 }

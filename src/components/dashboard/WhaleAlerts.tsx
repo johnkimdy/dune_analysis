@@ -10,14 +10,18 @@ import type { WhaleAlertRow } from "@/lib/types";
 
 interface Props {
   data: WhaleAlertRow[];
+  hideTitle?: boolean;
+  timeframe?: string;
 }
 
-export function WhaleAlerts({ data }: Props) {
+export function WhaleAlerts({ data, hideTitle, timeframe }: Props) {
   const { t } = useI18n();
 
   return (
     <Card
       title={t("chart.whaleTitle")}
+      hideTitle={hideTitle}
+      timeframe={timeframe}
       sql={QUERY_SQL_MAP["Whale Alerts"]}
       products={["Exchange", "Custody"]}
       signal={t("chart.whaleSignal")}

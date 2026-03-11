@@ -1,5 +1,6 @@
 "use client";
 
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   BarChart,
   Bar,
@@ -18,12 +19,21 @@ import { QUERY_SQL_MAP } from "@/lib/queries";
 import { useI18n } from "@/lib/i18n";
 import type { ExchangeVolume } from "@/lib/types";
 
-export function ExchangeBreakdown({ data }: { data: ExchangeVolume[] }) {
+interface ExchangeBreakdownProps {
+  data: ExchangeVolume[];
+  hideTitle?: boolean;
+  timeframe?: string;
+}
+
+export function ExchangeBreakdown({ data, hideTitle, timeframe }: ExchangeBreakdownProps) {
   const { t } = useI18n();
+  const isCompact = useMediaQuery("(max-width: 639px)");
 
   return (
     <Card
       title={t("chart.exchangeTitle")}
+      hideTitle={hideTitle}
+      timeframe={timeframe}
       sql={QUERY_SQL_MAP["Korea Net Stablecoin Flow"]}
       signal={t("chart.exchangeSignal")}
       products={["Exchange", "Custody"]}
@@ -42,9 +52,9 @@ export function ExchangeBreakdown({ data }: { data: ExchangeVolume[] }) {
             />
             <YAxis
               stroke="#475569"
-              tick={{ fill: "#94a3b8", fontSize: 11 }}
+              tick={{ fill: "#94a3b8", fontSize: isCompact ? 9 : 11 }}
               tickFormatter={(v: number) => formatUSD(v)}
-              width={80}
+              width={isCompact ? 50 : 80}
             />
             <Tooltip content={<ChartTooltip />} />
             <Legend wrapperStyle={{ color: "#94a3b8" }} />

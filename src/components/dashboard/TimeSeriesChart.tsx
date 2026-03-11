@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   ComposedChart,
   Area,
@@ -21,8 +22,16 @@ import { QUERY_SQL_MAP } from "@/lib/queries";
 import { useI18n } from "@/lib/i18n";
 import type { TimeSeriesPoint } from "@/lib/types";
 
-export function TimeSeriesChart({ data }: { data: TimeSeriesPoint[] }) {
+interface TimeSeriesChartProps {
+  data: TimeSeriesPoint[];
+  hideTitle?: boolean;
+  timeframe?: string;
+}
+
+export function TimeSeriesChart({ data, hideTitle, timeframe }: TimeSeriesChartProps) {
   const { t } = useI18n();
+  const isCompact = useMediaQuery("(max-width: 639px)");
+  const axisW = isCompact ? 50 : 80;
 
   const chartData = useMemo(
     () =>
@@ -36,6 +45,8 @@ export function TimeSeriesChart({ data }: { data: TimeSeriesPoint[] }) {
   return (
     <Card
       title={t("chart.timeSeriesTitle")}
+      hideTitle={hideTitle}
+      timeframe={timeframe}
       sql={QUERY_SQL_MAP["Korea Net Stablecoin Flow"]}
       signal={t("chart.timeSeriesSignal")}
       products={["Exchange", "Custody"]}
@@ -60,26 +71,26 @@ export function TimeSeriesChart({ data }: { data: TimeSeriesPoint[] }) {
             <XAxis
               dataKey="time"
               stroke="#475569"
-              tick={{ fill: "#94a3b8", fontSize: 11 }}
-              interval="preserveStartEnd"
+              tick={{ fill: "#94a3b8", fontSize: isCompact ? 9 : 11 }}
+              interval={isCompact ? "equidistantPreserveStart" : "preserveStartEnd"}
             />
             {/* Left axis: Net Flow */}
             <YAxis
               yAxisId="net"
               orientation="left"
               stroke="#64748b"
-              tick={{ fill: "#94a3b8", fontSize: 10 }}
+              tick={{ fill: "#94a3b8", fontSize: isCompact ? 9 : 10 }}
               tickFormatter={(v: number) => formatUSD(v)}
-              width={80}
+              width={axisW}
             />
             {/* Right axis: Inflow / Outflow volume */}
             <YAxis
               yAxisId="volume"
               orientation="right"
               stroke="#475569"
-              tick={{ fill: "#94a3b8", fontSize: 11 }}
+              tick={{ fill: "#94a3b8", fontSize: isCompact ? 9 : 11 }}
               tickFormatter={(v: number) => formatUSD(v)}
-              width={80}
+              width={axisW}
             />
             <Tooltip content={<ChartTooltip />} />
             <Legend wrapperStyle={{ color: "#94a3b8" }} />

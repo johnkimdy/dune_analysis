@@ -11,6 +11,10 @@ interface CardProps {
   products?: string[];
   children: React.ReactNode;
   className?: string;
+  /** When true, hide the title (e.g. when chart is embedded and button shows title) */
+  hideTitle?: boolean;
+  /** Small timeframe caption at bottom, e.g. "(7D, hourly)" or "(last updated: ...)" */
+  timeframe?: string;
 }
 
 export function Card({
@@ -20,21 +24,24 @@ export function Card({
   products,
   children,
   className = "",
+  hideTitle = false,
+  timeframe,
 }: CardProps) {
+  const showHeader = (title && !hideTitle) || sql || products;
   return (
     <div
       className={cn(
-        "bg-[var(--card)] border border-[var(--border)] rounded-none p-6",
+        "bg-[var(--card)] border border-[var(--border)] rounded-none p-4 sm:p-6",
         "transition-[border-color,box-shadow,transform] duration-300 ease-out",
         "hover:border-[var(--border-muted)] hover:shadow-lg hover:shadow-black/20",
         "hover:-translate-y-0.5",
         className
       )}
     >
-      {(title || sql || products) && (
+      {showHeader && (
         <div className="flex items-center justify-between mb-4 gap-2">
           <div className="flex items-center gap-3 min-w-0">
-            {title && (
+            {title && !hideTitle && (
               <h3 className="text-sm font-medium text-[var(--secondary)] uppercase tracking-wider whitespace-nowrap">
                 {title}
               </h3>
@@ -50,6 +57,11 @@ export function Card({
         </p>
       )}
       {children}
+      {timeframe && (
+        <p className="mt-2 text-[10px] text-[var(--muted)] text-right">
+          {timeframe}
+        </p>
+      )}
     </div>
   );
 }

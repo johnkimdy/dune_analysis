@@ -1,5 +1,6 @@
 "use client";
 
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   AreaChart,
   Area,
@@ -20,10 +21,13 @@ import type { DefiOutflowRow } from "@/lib/types";
 
 interface Props {
   data: DefiOutflowRow[];
+  hideTitle?: boolean;
+  timeframe?: string;
 }
 
-export function DefiOutflow({ data }: Props) {
+export function DefiOutflow({ data, hideTitle, timeframe }: Props) {
   const { t } = useI18n();
+  const isCompact = useMediaQuery("(max-width: 639px)");
 
   const dayMap = new Map<
     string,
@@ -54,6 +58,8 @@ export function DefiOutflow({ data }: Props) {
   return (
     <Card
       title={t("chart.defiTitle")}
+      hideTitle={hideTitle}
+      timeframe={timeframe}
       sql={QUERY_SQL_MAP["DeFi Outflow Tracking"]}
       signal={t("chart.defiSignal")}
       products={["Staking", "Lending"]}
@@ -72,9 +78,9 @@ export function DefiOutflow({ data }: Props) {
             />
             <YAxis
               stroke="#475569"
-              tick={{ fill: "#94a3b8", fontSize: 11 }}
+              tick={{ fill: "#94a3b8", fontSize: isCompact ? 9 : 11 }}
               tickFormatter={(v: number) => formatUSD(v)}
-              width={80}
+              width={isCompact ? 50 : 80}
             />
             <Tooltip content={<ChartTooltip />} />
             <Legend wrapperStyle={{ color: "#94a3b8" }} />

@@ -23,6 +23,7 @@ const BENTO_CARD =
 
 export function LandingPage() {
   const heroSpacerRef = useRef<HTMLDivElement>(null);
+  const paragraphRef = useRef<HTMLParagraphElement>(null);
 
   // Reset scroll to top when navigating back to home so slogan reappears
   useEffect(() => {
@@ -36,9 +37,6 @@ export function LandingPage() {
         <LayeredSineWaves />
       </div>
 
-      {/* Animated title: starts as hero headline, shrinks into navbar on scroll */}
-      <AnimatedLandingTitle heroRef={heroSpacerRef} />
-
       {/* Page content above animation - blur-in on load */}
       <div className="relative z-10 min-h-screen animate-chart-blur-in">
       {/* Hero */}
@@ -50,18 +48,21 @@ export function LandingPage() {
           }}
         />
         <div className="relative max-w-4xl mr-auto text-left">
-          {/* Spacer for layout — animated title overlays this area */}
-          <div
-            ref={heroSpacerRef}
-            className="font-bold text-6xl md:text-8xl lg:text-9xl tracking-tight leading-[0.95] opacity-0 select-none"
-            style={{ color: COLORS.primary }}
-            aria-hidden="true"
-          >
-            The Stablecoin
-            <br />
-            <span style={{ color: COLORS.accent }}>Must Flow.</span>
+          {/* Spacer + title: title is absolutely positioned above paragraph, scrolls with content */}
+          <div className="relative">
+            <div
+              ref={heroSpacerRef}
+              className="font-bold text-6xl md:text-8xl lg:text-9xl tracking-tight leading-[0.95] opacity-0 select-none"
+              style={{ color: COLORS.primary }}
+              aria-hidden="true"
+            >
+              The Stablecoin
+              <br />
+              <span style={{ color: COLORS.accent }}>Must Flow.</span>
+            </div>
+            <AnimatedLandingTitle heroRef={heroSpacerRef} paragraphRef={paragraphRef} />
           </div>
-          <p className="mt-6 text-lg md:text-xl lg:text-2xl max-w-2xl leading-relaxed" style={{ color: COLORS.secondary }}>
+          <p ref={paragraphRef} className="mt-6 text-lg md:text-xl lg:text-2xl max-w-2xl leading-relaxed" style={{ color: COLORS.secondary }}>
             Real-time macro-intelligence for the shadow FX market. We quantify
             the velocity of global capital flight, mapping the displacement of
             traditional rails by the stablecoin standard. Our signals are built

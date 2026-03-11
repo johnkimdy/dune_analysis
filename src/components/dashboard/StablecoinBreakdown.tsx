@@ -16,12 +16,20 @@ import { QUERY_SQL_MAP } from "@/lib/queries";
 import { useI18n } from "@/lib/i18n";
 import type { StablecoinVolume } from "@/lib/types";
 
-export function StablecoinBreakdown({ data }: { data: StablecoinVolume[] }) {
+interface StablecoinBreakdownProps {
+  data: StablecoinVolume[];
+  hideTitle?: boolean;
+  timeframe?: string;
+}
+
+export function StablecoinBreakdown({ data, hideTitle, timeframe }: StablecoinBreakdownProps) {
   const { t } = useI18n();
 
   return (
     <Card
       title={t("chart.stablecoinTitle")}
+      hideTitle={hideTitle}
+      timeframe={timeframe}
       sql={QUERY_SQL_MAP["Korea Net Stablecoin Flow"]}
       signal={t("chart.stablecoinSignal")}
       products={["Exchange", "Lending"]}

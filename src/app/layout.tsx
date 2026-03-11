@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import { NavBar } from "@/components/layout/NavBar";
 import { I18nProvider } from "@/lib/i18n";
 import { DashboardDataProvider } from "@/contexts/DashboardDataContext";
+import { LandingScrollProvider } from "@/contexts/LandingScrollContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,8 +39,10 @@ export default function RootLayout({
       >
         <I18nProvider>
           <DashboardDataProvider>
-            <NavBar />
-            {children}
+            <LandingScrollProvider>
+              <NavBar />
+              {children}
+            </LandingScrollProvider>
           </DashboardDataProvider>
         </I18nProvider>
       </body>

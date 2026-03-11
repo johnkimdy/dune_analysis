@@ -1,5 +1,6 @@
 "use client";
 
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   BarChart,
   Bar,
@@ -21,6 +22,8 @@ import type { CounterpartyRow } from "@/lib/types";
 
 interface Props {
   data: CounterpartyRow[];
+  hideTitle?: boolean;
+  timeframe?: string;
 }
 
 const REGION_COLORS: Record<string, string> = {
@@ -29,8 +32,9 @@ const REGION_COLORS: Record<string, string> = {
   "DeFi / Unknown": "#f59e0b",
 };
 
-export function CounterpartyBreakdown({ data }: Props) {
+export function CounterpartyBreakdown({ data, hideTitle, timeframe }: Props) {
   const { t } = useI18n();
+  const isCompact = useMediaQuery("(max-width: 639px)");
 
   // Aggregate by region and direction
   const regionMap = new Map<
@@ -65,6 +69,8 @@ export function CounterpartyBreakdown({ data }: Props) {
   return (
     <Card
       title={t("chart.counterpartyTitle")}
+      hideTitle={hideTitle}
+      timeframe={timeframe}
       sql={QUERY_SQL_MAP["Counterparty Exchange Breakdown"]}
       signal={t("chart.counterpartySignal")}
       products={["Exchange", "Custody"]}
@@ -83,9 +89,9 @@ export function CounterpartyBreakdown({ data }: Props) {
               />
               <YAxis
                 stroke="#475569"
-                tick={{ fill: "#94a3b8", fontSize: 11 }}
+                tick={{ fill: "#94a3b8", fontSize: isCompact ? 9 : 11 }}
                 tickFormatter={(v: number) => formatUSD(v)}
-                width={70}
+                width={isCompact ? 48 : 70}
               />
               <Tooltip content={<ChartTooltip />} />
               <Legend wrapperStyle={{ color: "#94a3b8" }} />

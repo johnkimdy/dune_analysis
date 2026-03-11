@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   LineChart,
   Line,
@@ -21,6 +22,8 @@ import type { ReserveRow } from "@/lib/types";
 
 interface Props {
   data: ReserveRow[];
+  hideTitle?: boolean;
+  timeframe?: string;
 }
 
 const REGIONS = ["Korea", "US", "International"] as const;
@@ -31,8 +34,9 @@ const REGION_COLORS: Record<string, string> = {
   International: "#a855f7",
 };
 
-export function ReserveLevel({ data }: Props) {
+export function ReserveLevel({ data, hideTitle, timeframe }: Props) {
   const { t } = useI18n();
+  const isCompact = useMediaQuery("(max-width: 639px)");
   const [visible, setVisible] = useState<Record<string, boolean>>({
     Korea: true,
     US: true,
@@ -80,6 +84,8 @@ export function ReserveLevel({ data }: Props) {
   return (
     <Card
       title={t("chart.reserveTitle")}
+      hideTitle={hideTitle}
+      timeframe={timeframe}
       sql={QUERY_SQL_MAP["Exchange Reserve Level"]}
       signal={t("chart.reserveSignal")}
       products={["Exchange", "Custody", "Lending"]}
@@ -144,9 +150,9 @@ export function ReserveLevel({ data }: Props) {
             />
             <YAxis
               stroke="#475569"
-              tick={{ fill: "#94a3b8", fontSize: 11 }}
+              tick={{ fill: "#94a3b8", fontSize: isCompact ? 9 : 11 }}
               tickFormatter={(v: number) => formatUSD(v)}
-              width={80}
+              width={isCompact ? 50 : 80}
             />
             <Tooltip content={<ChartTooltip />} />
             <Legend wrapperStyle={{ color: "#94a3b8" }} />

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   AreaChart,
   Area,
@@ -20,10 +21,13 @@ import type { SubstitutionRow } from "@/lib/types";
 
 interface Props {
   data: SubstitutionRow[];
+  hideTitle?: boolean;
+  timeframe?: string;
 }
 
-export function SubstitutionRatio({ data }: Props) {
+export function SubstitutionRatio({ data, hideTitle, timeframe }: Props) {
   const { t } = useI18n();
+  const isCompact = useMediaQuery("(max-width: 639px)");
 
   // Pivot by day, show USDC vs USDT volumes
   const dayMap = new Map<string, { USDC: number; USDT: number }>();
@@ -52,6 +56,8 @@ export function SubstitutionRatio({ data }: Props) {
   return (
     <Card
       title={t("chart.substitutionTitle")}
+      hideTitle={hideTitle}
+      timeframe={timeframe}
       products={["Exchange", "Lending"]}
       sql={QUERY_SQL_MAP["Stablecoin Substitution Ratio"]}
       signal={t("chart.substitutionSignal")}
@@ -71,8 +77,9 @@ export function SubstitutionRatio({ data }: Props) {
             />
             <YAxis
               stroke="#475569"
-              tick={{ fill: "#94a3b8", fontSize: 11 }}
+              tick={{ fill: "#94a3b8", fontSize: isCompact ? 9 : 11 }}
               tickFormatter={(v: number) => `${Math.round(v * 100)}%`}
+              width={isCompact ? 40 : undefined}
             />
             <Tooltip content={<ChartTooltip />} />
             <Legend wrapperStyle={{ color: "#94a3b8" }} />

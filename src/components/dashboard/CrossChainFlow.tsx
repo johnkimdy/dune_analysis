@@ -1,5 +1,6 @@
 "use client";
 
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   BarChart,
   Bar,
@@ -22,10 +23,13 @@ import type { CrossChainRow } from "@/lib/types";
 
 interface Props {
   data: CrossChainRow[];
+  hideTitle?: boolean;
+  timeframe?: string;
 }
 
-export function CrossChainFlow({ data }: Props) {
+export function CrossChainFlow({ data, hideTitle, timeframe }: Props) {
   const { t } = useI18n();
+  const isCompact = useMediaQuery("(max-width: 639px)");
 
   // Aggregate by blockchain across all days
   const chainMap = new Map<
@@ -53,6 +57,8 @@ export function CrossChainFlow({ data }: Props) {
   return (
     <Card
       title={t("chart.crossChainTitle")}
+      hideTitle={hideTitle}
+      timeframe={timeframe}
       sql={QUERY_SQL_MAP["Cross-Chain Flow Patterns"]}
       signal={t("chart.crossChainSignal")}
       products={["Exchange", "Staking"]}
@@ -79,8 +85,8 @@ export function CrossChainFlow({ data }: Props) {
               type="category"
               dataKey="blockchain"
               stroke="#475569"
-              tick={{ fill: "#94a3b8", fontSize: 12 }}
-              width={90}
+              tick={{ fill: "#94a3b8", fontSize: isCompact ? 10 : 12 }}
+              width={isCompact ? 60 : 90}
             />
             <Tooltip content={<ChartTooltip />} />
             <Legend wrapperStyle={{ color: "#94a3b8" }} />

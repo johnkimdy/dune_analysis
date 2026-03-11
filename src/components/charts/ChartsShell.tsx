@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { I18nProvider, useI18n } from "@/lib/i18n";
-import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { AccordionItem } from "@/components/ui/Accordion";
 import { TimeSeriesChart } from "@/components/dashboard/TimeSeriesChart";
 import { ExchangeBreakdown } from "@/components/dashboard/ExchangeBreakdown";
@@ -16,6 +15,7 @@ import { CrossChainFlow } from "@/components/dashboard/CrossChainFlow";
 import { RefreshIndicator } from "@/components/dashboard/RefreshIndicator";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 const INDEX_KEYS = [
   "netFlow",
@@ -61,7 +61,7 @@ function PlusToXIcon({ expanded }: { expanded: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 w-6 h-6 items-center justify-center transition-transform duration-300 ease-out",
+        "inline-flex shrink-0 w-5 h-5 md:w-6 md:h-6 items-center justify-center transition-transform duration-300 ease-out",
         expanded && "rotate-[135deg]"
       )}
       aria-hidden
@@ -82,18 +82,16 @@ function PlusToXIcon({ expanded }: { expanded: boolean }) {
   );
 }
 
-/** OCI-style indicator row: large title, +/X icon, description when expanded */
+/** Indicator row: slim, smaller font than category headers; click toggles chart open/closed */
 function IndicatorRow({
   id,
   label,
-  description,
   selected,
   onSelect,
   innerRef,
 }: {
   id: IndicatorId;
   label: string;
-  description?: string;
   selected: boolean;
   onSelect: () => void;
   innerRef?: (el: HTMLButtonElement | null) => void;
@@ -104,31 +102,26 @@ function IndicatorRow({
       type="button"
       onClick={onSelect}
       className={cn(
-        "w-full text-left px-6 py-5 border-b border-[var(--border)]/60 transition-all flex items-start gap-4",
+        "w-full text-left px-3 py-2 md:px-5 md:py-2.5 border-b border-[var(--border)]/60 transition-all flex items-center gap-2 md:gap-3",
         "hover:bg-[var(--card)]/60",
         selected &&
-          "bg-[var(--card)] border-l-4 border-l-[var(--accent)] pl-[calc(1.5rem-4px)]"
+          "bg-[var(--card)] border-l-4 border-l-[var(--accent)] pl-[calc(0.75rem-4px)] md:pl-[calc(1.25rem-4px)]"
       )}
     >
       <div className="flex-1 min-w-0">
         <div
           className={cn(
-            "font-semibold tracking-tight transition-colors",
-            "text-lg sm:text-xl md:text-2xl lg:text-3xl",
+            "font-medium tracking-tight transition-colors",
+            "text-xs md:text-sm",
             selected ? "text-[var(--accent)]" : "text-[var(--primary)]"
           )}
         >
           {label}
         </div>
-        {description && selected && (
-          <p className="mt-2 text-sm text-[var(--secondary)] line-clamp-2 max-w-2xl">
-            {description}
-          </p>
-        )}
       </div>
       <span
         className={cn(
-          "shrink-0 text-[var(--muted)] mt-1",
+          "shrink-0 text-[var(--muted)]",
           selected && "text-[var(--accent)]"
         )}
       >
@@ -141,38 +134,104 @@ function IndicatorRow({
 function ChartsContent() {
   const { t } = useI18n();
   const { data, error, isLoading, lastUpdated, refreshNow } = useAutoRefresh();
-  const [selectedId, setSelectedId] = useState<IndicatorId>("netFlow");
+  const [selectedId, setSelectedId] = useState<IndicatorId | null>("netFlow");
   const indicatorRefs = useRef<Partial<Record<IndicatorId, HTMLButtonElement | null>>>({});
 
-  // Scroll selected indicator to top of viewport (smooth)
+  // Scroll so clicked button is at top (right below navbar/header)
   useEffect(() => {
-    const el = indicatorRefs.current[selectedId];
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (selectedId) {
+      const el = indicatorRefs.current[selectedId];
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
   }, [selectedId]);
 
-  const renderChart = () => {
+  const lastUpdatedStr =
+    lastUpdated && format(new Date(lastUpdated), "MMM d, HH:mm");
+
+  const renderChart = (forId?: IndicatorId | null) => {
     if (!data) return null;
-    switch (selectedId) {
+    const id = forId ?? selectedId;
+    if (id === null) return null;
+    const embed = { hideTitle: true };
+    switch (id) {
       case "netFlow":
-        return <TimeSeriesChart data={data.timeSeries} />;
+        return (
+          <TimeSeriesChart
+            data={data.timeSeries}
+            {...embed}
+            timeframe="(7D, hourly)"
+          />
+        );
       case "exchange":
-        return <ExchangeBreakdown data={data.byExchange} />;
+        return (
+          <ExchangeBreakdown
+            data={data.byExchange}
+            {...embed}
+            timeframe="(7D)"
+          />
+        );
       case "stablecoin":
-        return <StablecoinBreakdown data={data.byStablecoin} />;
+        return (
+          <StablecoinBreakdown
+            data={data.byStablecoin}
+            {...embed}
+            timeframe={
+              lastUpdatedStr ? `(last updated: ${lastUpdatedStr})` : undefined
+            }
+          />
+        );
       case "reserve":
-        return <ReserveLevel data={data.reserveRows} />;
+        return (
+          <ReserveLevel
+            data={data.reserveRows}
+            {...embed}
+            timeframe="(7D)"
+          />
+        );
       case "substitution":
-        return <SubstitutionRatio data={data.substitutionRows} />;
+        return (
+          <SubstitutionRatio
+            data={data.substitutionRows}
+            {...embed}
+            timeframe="(7D)"
+          />
+        );
       case "counterparty":
-        return <CounterpartyBreakdown data={data.counterpartyRows} />;
+        return (
+          <CounterpartyBreakdown
+            data={data.counterpartyRows}
+            {...embed}
+            timeframe="(7D)"
+          />
+        );
       case "defi":
-        return <DefiOutflow data={data.defiOutflowRows} />;
+        return (
+          <DefiOutflow
+            data={data.defiOutflowRows}
+            {...embed}
+            timeframe="(7D)"
+          />
+        );
       case "crossChain":
-        return <CrossChainFlow data={data.crossChainRows} />;
+        return (
+          <CrossChainFlow
+            data={data.crossChainRows}
+            {...embed}
+            timeframe="(7D)"
+          />
+        );
       case "whale":
-        return <WhaleAlerts data={data.whaleRows} />;
+        return (
+          <WhaleAlerts
+            data={data.whaleRows}
+            {...embed}
+            timeframe={
+              lastUpdatedStr ? `(last updated: ${lastUpdatedStr})` : undefined
+            }
+          />
+        );
       case "reference":
         return (
           <div className="bg-[var(--card)] border border-[var(--border)] rounded-none p-4">
@@ -231,18 +290,15 @@ function ChartsContent() {
   const IndicatorButton = ({
     id,
     label,
-    description,
   }: {
     id: IndicatorId;
     label: string;
-    description?: string;
   }) => (
     <IndicatorRow
       id={id}
       label={label}
-      description={description}
       selected={selectedId === id}
-      onSelect={() => setSelectedId(id)}
+      onSelect={() => setSelectedId((prev) => (prev === id ? null : id))}
       innerRef={(el) => {
         indicatorRefs.current[id] = el;
       }}
@@ -251,13 +307,13 @@ function ChartsContent() {
 
   return (
     <div className="min-h-screen bg-[#faf8f5] flex flex-col">
-      {/* Full-width header */}
-      <header className="shrink-0 flex flex-col md:flex-row md:items-center md:justify-between p-4 md:p-6 lg:p-8 border-b border-[var(--border)] bg-[var(--card)]">
+      {/* Full-width header — compact on mobile */}
+      <header className="shrink-0 flex flex-col md:flex-row md:items-center md:justify-between p-3 md:p-6 lg:p-8 border-b border-[var(--border)] bg-[var(--card)]">
         <div>
-          <h1 className="text-xl font-bold text-[var(--primary)]">
+          <h1 className="text-base md:text-xl font-bold text-[var(--primary)]">
             Charts & Indicators
           </h1>
-          <p className="text-sm text-[var(--secondary)] mt-0.5">
+          <p className="text-xs md:text-sm text-[var(--secondary)] mt-0.5">
             {t("dashboard.subtitle")}
           </p>
         </div>
@@ -267,66 +323,107 @@ function ChartsContent() {
             isLoading={isLoading}
             onRefreshNow={refreshNow}
           />
-          <LanguageToggle />
         </div>
       </header>
 
       {/* OCI-style 5.5/4.5 layout: Indicators left, Chart right */}
       <div className="flex-1 flex flex-col lg:flex-row min-h-0">
-        {/* Left: Indicators — 55%, BIG typography like OCI */}
+        {/* Left: Indicators — 55%, compact on mobile */}
         <aside className="flex-[5.5] min-w-0 flex flex-col border-r border-[var(--border)] overflow-y-auto scroll-smooth">
-          <div className="p-4 md:p-6 lg:p-8">
-            <h2 className="text-xs font-semibold text-[var(--muted)] uppercase tracking-widest mb-6">
+          <div className="p-3 md:p-6 lg:p-8">
+            <h2 className="text-[10px] md:text-xs font-semibold text-[var(--muted)] uppercase tracking-widest mb-3 md:mb-6">
               Our Indicators
             </h2>
             <div className="space-y-0">
-              <AccordionItem id="acc-flow" title="Flow & Volume" defaultOpen>
+              <AccordionItem id="acc-flow" title="Flow & Volume" defaultOpen={false}>
                 <div className="space-y-0 -mx-2">
-                  <IndicatorButton
-                    id="netFlow"
-                    label={t("index.netFlow")}
-                    description={t("chart.timeSeriesSignal")}
-                  />
-                  {selectedId === "netFlow" && data && (
-                    <div className="lg:hidden mx-2 my-4 min-h-[280px] [&_.recharts-wrapper]:!max-h-[320px] animate-chart-blur-in">
-                      {renderChart()}
+                  <IndicatorButton id="netFlow" label={t("index.netFlow")} />
+                  <div
+                    className={cn(
+                      "lg:hidden grid transition-[grid-template-rows] duration-300 ease-out",
+                      selectedId === "netFlow"
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mx-0 sm:mx-2 my-4 min-h-[280px] w-full min-w-0 overflow-x-auto [&_.recharts-wrapper]:!max-h-[320px]">
+                        {selectedId === "netFlow" && (
+                          <div className="animate-chart-blur-in min-w-[300px]">
+                            {renderChart("netFlow")}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                   <IndicatorButton
                     id="exchange"
                     label={t("chart.exchangeTitle")}
-                    description={t("chart.exchangeSignal")}
                   />
-                  {selectedId === "exchange" && data && (
-                    <div className="lg:hidden mx-2 my-4 min-h-[280px] [&_.recharts-wrapper]:!max-h-[320px] animate-chart-blur-in">
-                      {renderChart()}
+                  <div
+                    className={cn(
+                      "lg:hidden grid transition-[grid-template-rows] duration-300 ease-out",
+                      selectedId === "exchange"
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mx-0 sm:mx-2 my-4 min-h-[280px] w-full min-w-0 overflow-x-auto [&_.recharts-wrapper]:!max-h-[320px]">
+                        {selectedId === "exchange" && (
+                          <div className="animate-chart-blur-in min-w-[300px]">
+                            {renderChart("exchange")}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                   <IndicatorButton
                     id="stablecoin"
                     label={t("chart.stablecoinTitle")}
-                    description={t("chart.stablecoinSignal")}
                   />
-                  {selectedId === "stablecoin" && data && (
-                    <div className="lg:hidden mx-2 my-4 min-h-[280px] [&_.recharts-wrapper]:!max-h-[320px] animate-chart-blur-in">
-                      {renderChart()}
+                  <div
+                    className={cn(
+                      "lg:hidden grid transition-[grid-template-rows] duration-300 ease-out",
+                      selectedId === "stablecoin"
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mx-0 sm:mx-2 my-4 min-h-[280px] w-full min-w-0 overflow-x-auto [&_.recharts-wrapper]:!max-h-[320px]">
+                        {selectedId === "stablecoin" && (
+                          <div className="animate-chart-blur-in min-w-[300px]">
+                            {renderChart("stablecoin")}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </AccordionItem>
 
               <AccordionItem id="acc-reserve" title={t("index.reserve")}>
                 <div className="space-y-0 -mx-2">
-                  <IndicatorButton
-                    id="reserve"
-                    label={t("index.reserve")}
-                    description={t("chart.reserveSignal")}
-                  />
-                  {selectedId === "reserve" && data && (
-                    <div className="lg:hidden mx-2 my-4 min-h-[280px] [&_.recharts-wrapper]:!max-h-[320px] animate-chart-blur-in">
-                      {renderChart()}
+                  <IndicatorButton id="reserve" label={t("index.reserve")} />
+                  <div
+                    className={cn(
+                      "lg:hidden grid transition-[grid-template-rows] duration-300 ease-out",
+                      selectedId === "reserve"
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mx-0 sm:mx-2 my-4 min-h-[280px] w-full min-w-0 overflow-x-auto [&_.recharts-wrapper]:!max-h-[320px]">
+                        {selectedId === "reserve" && (
+                          <div className="animate-chart-blur-in min-w-[300px]">
+                            {renderChart("reserve")}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </AccordionItem>
 
@@ -335,13 +432,25 @@ function ChartsContent() {
                   <IndicatorButton
                     id="substitution"
                     label={t("index.substitution")}
-                    description={t("chart.substitutionSignal")}
                   />
-                  {selectedId === "substitution" && data && (
-                    <div className="lg:hidden mx-2 my-4 min-h-[280px] [&_.recharts-wrapper]:!max-h-[320px] animate-chart-blur-in">
-                      {renderChart()}
+                  <div
+                    className={cn(
+                      "lg:hidden grid transition-[grid-template-rows] duration-300 ease-out",
+                      selectedId === "substitution"
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mx-0 sm:mx-2 my-4 min-h-[280px] w-full min-w-0 overflow-x-auto [&_.recharts-wrapper]:!max-h-[320px]">
+                        {selectedId === "substitution" && (
+                          <div className="animate-chart-blur-in min-w-[300px]">
+                            {renderChart("substitution")}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </AccordionItem>
 
@@ -350,64 +459,119 @@ function ChartsContent() {
                   <IndicatorButton
                     id="counterparty"
                     label={t("index.counterparty")}
-                    description={t("chart.counterpartySignal")}
                   />
-                  {selectedId === "counterparty" && data && (
-                    <div className="lg:hidden mx-2 my-4 min-h-[280px] [&_.recharts-wrapper]:!max-h-[320px] animate-chart-blur-in">
-                      {renderChart()}
+                  <div
+                    className={cn(
+                      "lg:hidden grid transition-[grid-template-rows] duration-300 ease-out",
+                      selectedId === "counterparty"
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mx-0 sm:mx-2 my-4 min-h-[280px] w-full min-w-0 overflow-x-auto [&_.recharts-wrapper]:!max-h-[320px]">
+                        {selectedId === "counterparty" && (
+                          <div className="animate-chart-blur-in min-w-[300px]">
+                            {renderChart("counterparty")}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </AccordionItem>
 
               <AccordionItem id="acc-defi" title="DeFi & Cross-Chain">
                 <div className="space-y-0 -mx-2">
-                  <IndicatorButton
-                    id="defi"
-                    label={t("index.defi")}
-                    description={t("chart.defiSignal")}
-                  />
-                  {selectedId === "defi" && data && (
-                    <div className="lg:hidden mx-2 my-4 min-h-[280px] [&_.recharts-wrapper]:!max-h-[320px] animate-chart-blur-in">
-                      {renderChart()}
+                  <IndicatorButton id="defi" label={t("index.defi")} />
+                  <div
+                    className={cn(
+                      "lg:hidden grid transition-[grid-template-rows] duration-300 ease-out",
+                      selectedId === "defi"
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mx-0 sm:mx-2 my-4 min-h-[280px] w-full min-w-0 overflow-x-auto [&_.recharts-wrapper]:!max-h-[320px]">
+                        {selectedId === "defi" && (
+                          <div className="animate-chart-blur-in min-w-[300px]">
+                            {renderChart("defi")}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                   <IndicatorButton
                     id="crossChain"
                     label={t("index.crossChain")}
-                    description={t("chart.crossChainSignal")}
                   />
-                  {selectedId === "crossChain" && data && (
-                    <div className="lg:hidden mx-2 my-4 min-h-[280px] [&_.recharts-wrapper]:!max-h-[320px] animate-chart-blur-in">
-                      {renderChart()}
+                  <div
+                    className={cn(
+                      "lg:hidden grid transition-[grid-template-rows] duration-300 ease-out",
+                      selectedId === "crossChain"
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mx-0 sm:mx-2 my-4 min-h-[280px] w-full min-w-0 overflow-x-auto [&_.recharts-wrapper]:!max-h-[320px]">
+                        {selectedId === "crossChain" && (
+                          <div className="animate-chart-blur-in min-w-[300px]">
+                            {renderChart("crossChain")}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </AccordionItem>
 
               <AccordionItem id="acc-whale" title={t("index.whale")}>
                 <div className="space-y-0 -mx-2">
-                  <IndicatorButton
-                    id="whale"
-                    label={t("index.whale")}
-                    description={t("chart.whaleSignal")}
-                  />
-                  {selectedId === "whale" && data && (
-                    <div className="lg:hidden mx-2 my-4 min-h-[280px] [&_.recharts-wrapper]:!max-h-[320px] animate-chart-blur-in">
-                      {renderChart()}
+                  <IndicatorButton id="whale" label={t("index.whale")} />
+                  <div
+                    className={cn(
+                      "lg:hidden grid transition-[grid-template-rows] duration-300 ease-out",
+                      selectedId === "whale"
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mx-0 sm:mx-2 my-4 min-h-[280px] w-full min-w-0 overflow-x-auto [&_.recharts-wrapper]:!max-h-[320px]">
+                        {selectedId === "whale" && (
+                          <div className="animate-chart-blur-in min-w-[300px]">
+                            {renderChart("whale")}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </AccordionItem>
 
               <AccordionItem id="acc-reference" title={t("dashboard.refTitle")}>
                 <div className="space-y-0 -mx-2">
                   <IndicatorButton id="reference" label={t("dashboard.refTitle")} />
-                  {selectedId === "reference" && data && (
-                    <div className="lg:hidden mx-2 my-4 animate-chart-blur-in">
-                      {renderChart()}
+                  <div
+                    className={cn(
+                      "lg:hidden grid transition-[grid-template-rows] duration-300 ease-out",
+                      selectedId === "reference"
+                        ? "grid-rows-[1fr]"
+                        : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="mx-2 my-4">
+                        {selectedId === "reference" && (
+                          <div className="animate-chart-blur-in">
+                            {renderChart("reference")}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </AccordionItem>
             </div>
@@ -433,7 +597,7 @@ function ChartsContent() {
               </div>
             )}
 
-            {data && (
+            {data && selectedId && (
               <div
                 key={selectedId}
                 className="flex-1 min-h-0 [&_.recharts-wrapper]:!max-h-[420px] [&_.recharts-surface]:overflow-visible animate-chart-blur-in"
