@@ -24,7 +24,7 @@ Core metrics: M (Net Momentum), V (Velocity), KFI (Kimchi Flight Index).
 import io
 import os
 import json
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Optional
 
@@ -206,7 +206,7 @@ def velocity(daily_volume: float, market_cap: float) -> Optional[float]:
 def compute_kfi(
     indices_df: pd.DataFrame,
     krw_df: pd.DataFrame,
-    window: int = 30,
+    window: int = 7,
 ) -> pd.DataFrame:
     """
     Kimchi Flight Index: rolling correlation between aggregate Korean velocity
@@ -307,7 +307,7 @@ def compute_indices(
     result = idx_df.merge(krw_df, on="date", how="left")
 
     # KFI: correlation between Korean velocity and KRW/USD
-    result = compute_kfi(result, krw_df, window=30)
+    result = compute_kfi(result, krw_df, window=7)
     return result
 
 
@@ -355,8 +355,11 @@ def upload_to_gcp(
         .groupby("symbol", as_index=False)
         .first()
     )
-    # Convert NaN to null for JSON
+    # Convert NaN to null, date to string for JSON
     latest = latest.replace({np.nan: None})
+    if "date" in latest.columns:
+        latest = latest.copy()
+        latest["date"] = latest["date"].astype(str)
     payload = {
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "stamp": stamp,
@@ -370,10 +373,26 @@ def upload_to_gcp(
             "symbols": list(latest["symbol"].unique()),
         },
     }
+    def _json_default(obj):
+        if obj is None or (isinstance(obj, float) and (np.isnan(obj) or np.isinf(obj))):
+            return None
+        if hasattr(obj, "item") and hasattr(obj, "dtype"):
+            val = obj.item()
+            return None if (isinstance(val, float) and (np.isnan(val) or np.isinf(val))) else val
+        if isinstance(obj, (date, datetime)):
+            return obj.isoformat()
+        if isinstance(obj, np.floating):
+            return None if (np.isnan(obj) or np.isinf(obj)) else float(obj)
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.bool_):
+            return bool(obj)
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
     json_key = "latest_indices.json"
     blob_json = bucket.blob(json_key)
     blob_json.upload_from_string(
-        json.dumps(payload, indent=2),
+        json.dumps(payload, indent=2, default=_json_default),
         content_type="application/json",
     )
     print(f"  Uploaded gs://{bucket_name}/{json_key}")

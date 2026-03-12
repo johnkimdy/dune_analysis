@@ -7,6 +7,10 @@ region     = "us-central1"
 prod_db_password    = "CHANGE_ME_STRONG_RANDOM_STRING"
 staging_db_password = "CHANGE_ME_STRONG_RANDOM_STRING"
 
+# GCS bucket for data_pipeline.py output — must be globally unique across GCP.
+# Use project prefix if stablecoin-flow-data is taken: "${project_id}-stablecoin-flow-data"
+gcs_bucket_name = "stablecoin-flow-data"
+
 # Optional overrides (defaults are fine to start)
 # prod_tier    = "db-g1-small"    # upgrade when load increases (~$25/mo)
 # staging_tier = "db-f1-micro"    # stay small

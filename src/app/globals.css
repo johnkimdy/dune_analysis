@@ -18,6 +18,7 @@
 :root {
   /* Light theme */
   color-scheme: light;
+  --charts-navbar-height: 4rem; /* fallback; ChartsShell measures nav dynamically */
   --background: #ffffff;
   --foreground: #0f0f12;
   --card: #f8f8f8;

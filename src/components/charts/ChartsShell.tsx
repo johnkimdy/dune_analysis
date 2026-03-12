@@ -131,11 +131,29 @@ function IndicatorRow({
   );
 }
 
+const NAVBAR_HEIGHT_CSS_VAR = "--charts-navbar-height";
+
 function ChartsContent() {
   const { t } = useI18n();
   const { data, error, isLoading, lastUpdated, refreshNow } = useAutoRefresh();
   const [selectedId, setSelectedId] = useState<IndicatorId | null>("netFlow");
   const indicatorRefs = useRef<Partial<Record<IndicatorId, HTMLButtonElement | null>>>({});
+
+  // Measure navbar height dynamically for sticky chart positioning
+  useEffect(() => {
+    const syncNavbarHeight = () => {
+      const nav = document.querySelector("nav");
+      if (nav) {
+        const h = nav.getBoundingClientRect().height;
+        document.documentElement.style.setProperty(NAVBAR_HEIGHT_CSS_VAR, `${h}px`);
+      }
+    };
+    syncNavbarHeight();
+    const ro = new ResizeObserver(syncNavbarHeight);
+    const nav = document.querySelector("nav");
+    if (nav) ro.observe(nav);
+    return () => ro.disconnect();
+  }, []);
 
   // Scroll so clicked button is at top (right below navbar/header)
   useEffect(() => {
@@ -239,12 +257,12 @@ function ChartsContent() {
               {t("dashboard.refTitle")}
             </h3>
             <div className="overflow-x-auto">
-              <table className="w-full text-xs">
+              <table className="w-full text-xs table-fixed">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-left text-[var(--secondary)]">
-                    <th className="pb-2 pr-2">{t("dashboard.refIndex")}</th>
-                    <th className="pb-2 pr-2">{t("dashboard.refProducts")}</th>
-                    <th className="pb-2">{t("dashboard.refDescription")}</th>
+                    <th className="pb-2 pr-2 w-[20%] text-[10px]">{t("dashboard.refIndex")}</th>
+                    <th className="pb-2 pr-2 w-[28%]">{t("dashboard.refProducts")}</th>
+                    <th className="pb-2 w-[52%]">{t("dashboard.refDescription")}</th>
                   </tr>
                 </thead>
                 <tbody className="text-[var(--secondary)]">
@@ -253,10 +271,10 @@ function ChartsContent() {
                       key={key}
                       className="border-b border-[var(--border)]/50 hover:bg-[var(--card)] transition-colors"
                     >
-                      <td className="py-2 pr-2 font-medium text-[var(--primary)] whitespace-nowrap">
+                      <td className="py-2 pr-2 font-medium text-[var(--primary)] w-[20%] text-[10px] leading-tight break-words">
                         {t(`index.${key}`)}
                       </td>
-                      <td className="py-2 pr-2">
+                      <td className="py-2 pr-2 w-[28%]">
                         <div className="flex flex-wrap gap-1">
                           {INDEX_PRODUCTS[key].map((p) => (
                             <span
@@ -272,7 +290,7 @@ function ChartsContent() {
                           ))}
                         </div>
                       </td>
-                      <td className="py-2 text-[10px] text-[var(--muted)]">
+                      <td className="py-2 text-[10px] text-[var(--muted)] w-[52%]">
                         {t(`indexDesc.${key}`)}
                       </td>
                     </tr>
@@ -328,8 +346,8 @@ function ChartsContent() {
 
       {/* OCI-style 5.5/4.5 layout: Indicators left, Chart right */}
       <div className="flex-1 flex flex-col lg:flex-row min-h-0">
-        {/* Left: Indicators — 55%, compact on mobile */}
-        <aside className="flex-[5.5] min-w-0 flex flex-col border-r border-[var(--border)] overflow-y-auto scroll-smooth">
+        {/* Left: Indicators — 55%, expands on desktop so page scrolls; chart can stick */}
+        <aside className="flex-[5.5] min-w-0 flex flex-col border-r border-[var(--border)] overflow-y-auto lg:overflow-visible scroll-smooth">
           <div className="p-3 md:p-6 lg:p-8">
             <h2 className="text-[10px] md:text-xs font-semibold text-[var(--muted)] uppercase tracking-widest mb-3 md:mb-6">
               Our Indicators
@@ -578,8 +596,11 @@ function ChartsContent() {
           </div>
         </aside>
 
-        {/* Right: Chart — 45% (hidden on mobile; chart shown inline in indicator list) */}
-        <main className="hidden lg:flex flex-[4.5] min-w-0 flex-col bg-[var(--card)]/40 overflow-auto">
+        {/* Right: Chart — 45%, sticky below navbar (hidden on mobile; chart inline in indicator list) */}
+        <main
+          className="hidden lg:flex flex-[4.5] min-w-0 flex-col bg-[var(--card)]/40 overflow-auto shrink-0 self-start sticky"
+          style={{ top: "var(--charts-navbar-height, 4rem)" }}
+        >
           <div className="p-4 md:p-5 lg:p-6 flex flex-col min-h-full">
             {error && (
               <div className="mb-4 p-4 rounded-lg bg-red-900/20 border border-red-500/30 text-red-400 text-sm">

@@ -67,9 +67,19 @@ const LayeredSineWaves = () => {
     const cvs = canvas as HTMLCanvasElement;
     const c   = ctx   as CanvasRenderingContext2D;
 
+    let logicalW = window.innerWidth;
+    let logicalH = window.innerHeight;
+
     const resize = () => {
-      cvs.width  = window.innerWidth;
-      cvs.height = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      logicalW = window.innerWidth;
+      logicalH = window.innerHeight;
+      cvs.width  = logicalW * dpr;
+      cvs.height = logicalH * dpr;
+      cvs.style.width  = `${logicalW}px`;
+      cvs.style.height = `${logicalH}px`;
+      c.setTransform(1, 0, 0, 1, 0, 0); // reset before scale
+      c.scale(dpr, dpr);
     };
     resize();
     window.addEventListener("resize", resize);
@@ -141,8 +151,8 @@ const LayeredSineWaves = () => {
     }
 
     function draw() {
-      const W  = cvs.width;
-      const H  = cvs.height;
+      const W  = logicalW;
+      const H  = logicalH;
       const cy = H / 2;
 
       // Scroll convergence: 0 = all 25 lines, 1 = 1 line

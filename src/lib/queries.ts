@@ -379,7 +379,7 @@ korean_flows AS (
     ON (t."to" = k.address OR t."from" = k.address)
     AND t.blockchain = k.blockchain
   WHERE t.symbol IN ('USDT', 'USDC', 'FDUSD')
-    AND t.block_time >= CURRENT_DATE - INTERVAL '30' DAY
+    AND t.block_time >= CURRENT_DATE - INTERVAL '7' DAY
     AND t.blockchain IN ('ethereum', 'polygon', 'arbitrum', 'base', 'bnb', 'avalanche_c')
     AND t.amount_usd > 0
 )

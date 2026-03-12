@@ -58,6 +58,7 @@ output "vercel_env_vars_prod" {
     DB_USER=${var.prod_db_user}
     DB_PASSWORD=${var.prod_db_password}
     GCP_CREDENTIALS=<run: terraform output -raw app_service_account_key_b64>
+    GCP_BUCKET_NAME=${google_storage_bucket.indices.name}
   EOT
 }
 
@@ -70,5 +71,6 @@ output "vercel_env_vars_staging" {
     DB_USER=${var.staging_db_user}
     DB_PASSWORD=${var.staging_db_password}
     GCP_CREDENTIALS=<same key as prod — or create a separate staging key>
+    GCP_BUCKET_NAME=${google_storage_bucket.indices.name}
   EOT
 }

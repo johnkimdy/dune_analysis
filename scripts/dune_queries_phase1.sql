@@ -3,6 +3,7 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Output: date, symbol, daily_volume, market_cap
 -- Save in Dune, add ID to DUNE_QUERY_IDS (first ID)
+-- approx query credit used: near 0
 -- ─────────────────────────────────────────────────────────────────────────────
 
 WITH
@@ -67,14 +68,14 @@ FROM supply_by_day s
 LEFT JOIN volume_by_day v ON s.date = v.date AND s.symbol = v.symbol
 ORDER BY s.date ASC, s.symbol;
 
-
 -- ─────────────────────────────────────────────────────────────────────────────
--- Query 2: Korean Exchange Daily Volume (for KFI — Kimchi Flight Index) # Dune Query ID: 
+-- Query 2: Korean Exchange Daily Volume (for KFI — Kimchi Flight Index) # Dune Query ID: 6808164
 -- ─────────────────────────────────────────────────────────────────────────────
 -- KFI = correlation between Korean stablecoin velocity and KRW/USD.
 -- Output: date, symbol, korean_daily_volume
 -- Save in Dune, add ID to DUNE_QUERY_ID_KOREAN_VOLUME
--- Optimized: 30-day window + blockchain filter to avoid timeout.
+-- Optimized: 7-day window + blockchain filter to avoid timeout.
+-- approx query credit used: 85.979, duration 6 min
 -- ─────────────────────────────────────────────────────────────────────────────
 
 WITH korean_exchanges AS (
@@ -92,7 +93,7 @@ korean_flows AS (
     ON (t."to" = k.address OR t."from" = k.address)
     AND t.blockchain = k.blockchain
   WHERE t.symbol IN ('USDT', 'USDC', 'FDUSD')
-    AND t.block_time >= CURRENT_DATE - INTERVAL '30' DAY
+    AND t.block_time >= CURRENT_DATE - INTERVAL '7' DAY
     AND t.blockchain IN ('ethereum', 'polygon', 'arbitrum', 'base', 'bnb', 'avalanche_c')
     AND t.amount_usd > 0
 )

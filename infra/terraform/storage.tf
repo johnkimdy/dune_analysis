@@ -22,6 +22,13 @@ resource "google_storage_bucket_iam_member" "pipeline_writer" {
   member = "serviceAccount:${google_service_account.pipeline.email}"
 }
 
+# App SA reads indices for GET /api/indices (google_service_account.app from iam.tf)
+resource "google_storage_bucket_iam_member" "app_reader" {
+  bucket = google_storage_bucket.indices.name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${google_service_account.app.email}"
+}
+
 # Key for local/CI runs — download and save as service_account.json
 resource "google_service_account_key" "pipeline_key" {
   service_account_id = google_service_account.pipeline.name

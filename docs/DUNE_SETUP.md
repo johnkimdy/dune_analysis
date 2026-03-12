@@ -65,6 +65,12 @@
 
 ## Terraform: Create Bucket + Pipeline SA
 
+**Checklist before apply:**
+- [ ] `terraform.tfvars` has `project_id`, `prod_db_password`, `staging_db_password`
+- [ ] `gcs_bucket_name` in tfvars matches `GCP_BUCKET_NAME` in `.env` (default: `stablecoin-flow-data`)
+- [ ] `backend.config` exists (from `backend.config.example`) with your state bucket
+- [ ] State bucket created: `gsutil mb -l us-central1 gs://YOUR_PROJECT_ID-tfstate`
+
 ```bash
 cd infra/terraform
 terraform init -backend-config=backend.config
